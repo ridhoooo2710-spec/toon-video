@@ -1,0 +1,26 @@
+name: Render video
+on:
+  workflow_dispatch:
+jobs:
+  render:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: unzip -q ./toon-video-remotion*.zip -d proj
+      - run: npm ci
+        working-directory: proj
+      - run: |
+          sudo apt-get update
+          sudo apt-get install -y libnss3 libatk1.0-0 libatk-bridge2.0-0 libgbm1 libasound2t64 libxkbcommon0 libxdamage1 libxrandr2 libcups2
+          npx remotion browser ensure
+        working-directory: proj
+      - run: npx remotion render ToonVideo out/video.mp4 --codec=h264 --gl=angle
+        working-directory: proj
+      - uses: actions/upload-artifact@v4
+        with:
+          name: video
+          path: proj/out/video.mp4
